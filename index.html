@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <script>
+<script>
     const container = document.getElementById('tiltContainer');
     const card = document.getElementById('tiltCard');
 
@@ -100,15 +100,12 @@
     let currentRotateY = 0;
     let isHovering = false;
 
-    // Чутливість нахилу (градуси)
     const tiltIntensity = 12; 
-    // Плавність (чим менше число, тим повільніше наздоганяє мишку, наприклад 0.05)
     const smoothness = 0.08; 
 
+    // 🖱️ ОБРОБКА МИШКИ (ДЛЯ ПК)
     container.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
-        
-        // Координати відносно центру картки (-1 до 1)
         const x = (e.clientX - rect.left) / rect.width * 2 - 1;
         const y = (e.clientY - rect.top) / rect.height * 2 - 1;
 
@@ -116,23 +113,35 @@
         mouseY = -y * tiltIntensity;
     });
 
-    container.addEventListener('mouseenter', () => {
-        isHovering = true;
+    container.addEventListener('mouseenter', () => { isHovering = true; });
+    container.addEventListener('mouseleave', () => { 
+        isHovering = false; 
+        mouseX = 0; 
+        mouseY = 0; 
     });
 
-    container.addEventListener('mouseleave', () => {
-        isHovering = false;
-        mouseX = 0;
-        mouseY = 0;
-    });
+    // 📱 ОБРОБКА ГІРОСКОПА (ДЛЯ МОБІЛОК)
+    window.addEventListener('deviceorientation', (e) => {
+        if (isHovering) return; // Пріоритет мишці, якщо вона є
 
-    // Головний цикл анімації для максимальної плавності
+        // gamma - нахил вліво/вправо (-90 до 90)
+        // beta - нахил вперед/назад (-180 до 180)
+        let x = e.gamma / 45; // Нормалізуємо до діапазону ~ -1 до 1
+        let y = (e.beta - 45) / 45; // Центруємо під зручний кут тримання
+
+        // Обмежуємо значення
+        x = Math.max(Math.min(x, 1), -1);
+        y = Math.max(Math.min(y, 1), -1);
+
+        mouseX = x * tiltIntensity;
+        mouseY = -y * tiltIntensity;
+    }, true);
+
+    // 🚀 ЦИКЛ АНІМАЦІЇ
     function animate() {
-        // Формула плавності: поточне значення + (ціль - поточне) * коефіцієнт
         currentRotateX += (mouseY - currentRotateX) * smoothness;
         currentRotateY += (mouseX - currentRotateY) * smoothness;
 
-        // Масштабування при наведенні
         const scale = isHovering ? 1.03 : 1;
 
         card.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${scale})`;
@@ -140,9 +149,9 @@
         requestAnimationFrame(animate);
     }
 
-    // Запускаємо рендер
     animate();
 </script>
 
 </body>
+
 </html>
