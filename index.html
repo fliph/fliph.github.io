@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nahbro.site — Coming Soon</title>
+    <title>nahbro.site - Coming Soon</title>
     <style>
         :root {
             --bg-color: #0a0a0a;
@@ -33,19 +33,19 @@
             text-shadow: 0 0 10px var(--accent-color);
             letter-spacing: 5px;
             animation: glitch 3s infinite;
-            pointer-events: none; /* Щоб не перехоплював мишку */
+            pointer-events: none; 
             user-select: none;
         }
 
-        /* КОНТЕЙНЕР тепер займає тільки місце картинки */
+    
         .card-container {
             perspective: 1000px;
             display: inline-block; 
-            padding: 20px; /* Буферна зона для плавності */
+            padding: 20px; /
         }
 
         .card {
-            width: 800px; /* Трохи зменшив, щоб влізало в екран */
+            width: 800px; 
             max-width: 90vw; 
             height: auto;
             border-radius: 5px;
@@ -91,61 +91,56 @@
     </div>
 
 <script>
-    const container = document.getElementById('tiltContainer');
     const card = document.getElementById('tiltCard');
+    const container = document.getElementById('tiltContainer');
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let currentRotateX = 0;
-    let currentRotateY = 0;
-    let isHovering = false;
+    let mouseX = 0, mouseY = 0;
+    let currentRotateX = 0, currentRotateY = 0;
+    const tiltIntensity = 15; 
+    const smoothness = 0.08;
 
-    const tiltIntensity = 12; 
-    const smoothness = 0.08; 
+    async function requestPermission() {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            try {
+                const response = await DeviceOrientationEvent.requestPermission();
+                if (response === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+            } catch (error) {
+                console.error("", error);
+            }
+        } else {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+        window.removeEventListener('click', requestPermission);
+    }
 
-    // 🖱️ ОБРОБКА МИШКИ (ДЛЯ ПК)
-    container.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width * 2 - 1;
-        const y = (e.clientY - rect.top) / rect.height * 2 - 1;
+    // Слухаємо перший клік по екрану, щоб активувати гіроскоп
+    window.addEventListener('click', requestPermission);
 
-        mouseX = x * tiltIntensity;
-        mouseY = -y * tiltIntensity;
-    });
+    function handleOrientation(e) {
+        let x = e.gamma / 30; 
+        let y = (e.beta - 45) / 30; 
 
-    container.addEventListener('mouseenter', () => { isHovering = true; });
-    container.addEventListener('mouseleave', () => { 
-        isHovering = false; 
-        mouseX = 0; 
-        mouseY = 0; 
-    });
-
-    // 📱 ОБРОБКА ГІРОСКОПА (ДЛЯ МОБІЛОК)
-    window.addEventListener('deviceorientation', (e) => {
-        if (isHovering) return; // Пріоритет мишці, якщо вона є
-
-        // gamma - нахил вліво/вправо (-90 до 90)
-        // beta - нахил вперед/назад (-180 до 180)
-        let x = e.gamma / 45; // Нормалізуємо до діапазону ~ -1 до 1
-        let y = (e.beta - 45) / 45; // Центруємо під зручний кут тримання
-
-        // Обмежуємо значення
         x = Math.max(Math.min(x, 1), -1);
         y = Math.max(Math.min(y, 1), -1);
 
         mouseX = x * tiltIntensity;
         mouseY = -y * tiltIntensity;
-    }, true);
+    }
 
-    // 🚀 ЦИКЛ АНІМАЦІЇ
+    container.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width * 2 - 1;
+        const y = (e.clientY - rect.top) / rect.height * 2 - 1;
+        mouseX = x * tiltIntensity;
+        mouseY = -y * tiltIntensity;
+    });
+
     function animate() {
         currentRotateX += (mouseY - currentRotateX) * smoothness;
         currentRotateY += (mouseX - currentRotateY) * smoothness;
-
-        const scale = isHovering ? 1.03 : 1;
-
-        card.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${scale})`;
-        
+        card.style.transform = `perspective(1000px) rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
         requestAnimationFrame(animate);
     }
 
@@ -155,3 +150,4 @@
 </body>
 
 </html>
+
