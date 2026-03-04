@@ -1,122 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nahbro.site</title>
+    <title>nahbro.site — Coming Soon</title>
     <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --accent-color: #ffffff;
+            --text-color: #ffffff;
+            --main-font: 'Courier New', Courier, monospace;
+        }
+
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--main-font);
             margin: 0;
-            padding: 0;
-            background-color: #000;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            min-height: 100vh;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
         }
-        #tiltContainer {
-            perspective: 1000px;
-            width: 90%;
-            max-width: 600px;
-        }
-        #tiltCard {
-            width: 100%;
-            transition: transform 0.1s ease-out;
-            transform-style: preserve-3d;
-        }
-        #tiltCard img {
-            width: 100%;
-            display: block;
-            border-top: 1px solid #00f2ff;
-            border-bottom: 1px solid #00f2ff;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-        }
-        #accelBtn {
-            position: absolute;
-            bottom: 30px;
-            background: none;
-            border: 1px solid #00f2ff;
-            color: #00f2ff;
-            padding: 12px 24px;
-            cursor: pointer;
-            font-size: 14px;
-            letter-spacing: 2px;
+
+        .coming-soon-text {
+            font-size: 2.5rem;
             text-transform: uppercase;
-            z-index: 100;
-            transition: 0.3s;
+            color: var(--accent-color);
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px var(--accent-color);
+            letter-spacing: 5px;
+            animation: glitch 3s infinite;
+            pointer-events: none; /* Щоб не перехоплював мишку */
+            user-select: none;
         }
-        #accelBtn:hover {
-            background: rgba(0, 242, 255, 0.1);
-            box-shadow: 0 0 15px #00f2ff;
+
+        /* КОНТЕЙНЕР тепер займає тільки місце картинки */
+        .card-container {
+            perspective: 1000px;
+            display: inline-block; 
+            padding: 20px; /* Буферна зона для плавності */
+        }
+
+        .card {
+            width: 800px; /* Трохи зменшив, щоб влізало в екран */
+            max-width: 90vw; 
+            height: auto;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+            will-change: transform;
+            transform-style: preserve-3d;
+            border: 2px solid #222;
+            cursor: pointer;
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card:hover {
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); text-shadow: 0 0 10px var(--accent-color); }
+            20% { transform: translate(-2px, 2px); text-shadow: 2px 0 red, -2px 0 blue; }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); }
+            100% { transform: translate(0); text-shadow: 0 0 10px var(--accent-color); }
         }
     </style>
 </head>
 <body>
 
-    <div id="tiltContainer">
-        <div id="tiltCard">
-            <img src="designv1.png" alt="cheat menu">
+    <div class="coming-soon-text">coming soon...</div>
+
+    <div class="card-container" id="tiltContainer">
+        <div class="card" id="tiltCard">
+            <img src="designv1.png" alt="nahbro design v1">
         </div>
     </div>
 
-    <button id="accelBtn">[ INITIALIZE SENSORS ]</button>
-
     <script>
-        const card = document.getElementById('tiltCard');
-        const container = document.getElementById('tiltContainer');
-        const btn = document.getElementById('accelBtn');
+    const container = document.getElementById('tiltContainer');
+    const card = document.getElementById('tiltCard');
 
-        let mouseX = 0, mouseY = 0;
-        let currentRotateX = 0, currentRotateY = 0;
-        const tiltIntensity = 15;
-        const smoothness = 0.08;
+    let mouseX = 0;
+    let mouseY = 0;
+    let currentRotateX = 0;
+    let currentRotateY = 0;
+    let isHovering = false;
 
-        function handleOrientation(e) {
-            let x = e.gamma / 30;
-            let y = (e.beta - 45) / 30;
-            x = Math.max(Math.min(x, 1), -1);
-            y = Math.max(Math.min(y, 1), -1);
-            mouseX = x * tiltIntensity;
-            mouseY = -y * tiltIntensity;
-        }
+    const tiltIntensity = 12; 
+    const smoothness = 0.08; 
 
-        async function requestTOS() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const response = await DeviceOrientationEvent.requestPermission();
-                    if (response === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                        btn.style.display = 'none';
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            } else {
-                window.addEventListener('deviceorientation', handleOrientation);
-                btn.style.display = 'none';
-            }
-        }
+    container.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        
+        const x = (e.clientX - rect.left) / rect.width * 2 - 1;
+        const y = (e.clientY - rect.top) / rect.height * 2 - 1;
 
-        btn.addEventListener('click', requestTOS);
+        mouseX = x * tiltIntensity;
+        mouseY = -y * tiltIntensity;
+    });
 
-        container.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width * 2 - 1;
-            const y = (e.clientY - rect.top) / rect.height * 2 - 1;
-            mouseX = x * tiltIntensity;
-            mouseY = -y * tiltIntensity;
-        });
+    container.addEventListener('mouseenter', () => {
+        isHovering = true;
+    });
 
-        function animate() {
-            currentRotateX += (mouseY - currentRotateX) * smoothness;
-            currentRotateY += (mouseX - currentRotateY) * smoothness;
-            card.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
-            requestAnimationFrame(animate);
-        }
+    container.addEventListener('mouseleave', () => {
+        isHovering = false;
+        mouseX = 0;
+        mouseY = 0;
+    });
 
-        animate();
-    </script>
+    function animate() {
+        currentRotateX += (mouseY - currentRotateX) * smoothness;
+        currentRotateY += (mouseX - currentRotateY) * smoothness;
+
+        const scale = isHovering ? 1.03 : 1;
+
+        card.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${scale})`;
+        
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+
 </body>
 </html>
